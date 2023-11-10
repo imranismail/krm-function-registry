@@ -1,0 +1,95 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: discover
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const packages = fs.readdirSync(path.join(process.cwd(), 'krm-functions'));
+            return packages
+    outputs:
+      packages: ${{ steps.discover.outputs.result  }}
+  release:
+    needs: discover
+    strategy:
+      matrix:
+        package: ${{ fromJson(needs.discover.outputs.packages) }}
+    runs-on: ubuntu-latest
+    steps:
+      - id: release
+        uses: google-github-actions/release-please-action@v3
+        with:
+          monorepo-tags: true
+          package-name: ${{ matrix.package }}
+          path: krm-functions/${{ matrix.package }}
+          release-type: go
+      - uses: actions/checkout@v4
+        if: ${{ steps.release.outputs.releases_created }}
+      - uses: asdf-vm/actions/install@v2
+        if: ${{ steps.release.outputs.releases_created }}
+      - name: build
+        if: ${{ steps.release.outputs.releases_created }}
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const release = JSON.parse(process.env.RELEASE_OUTPUT);
+            const package = process.env.PACKAGE;
+            const path = require('path');
+            const packagePath = path.join('krm-functions', package)
+            const cwd = path.join(process.cwd(), packagePath)
+            const child_process = require('child_process');
+            const fs = require('fs');
+
+            child_process.execSync('go test', {
+              cwd,
+              stdio: 'inherit',
+            });
+
+            const oses = ['linux', 'darwin'];
+            const archs = ['amd64', 'arm64'];
+
+            for (const os of oses) {
+              for (const arch of archs) {
+                child_process.execSync(`GOOS=${os} GOARCH=${arch} go build -o ${package}`, {
+                  cwd,
+                  stdio: 'inherit',
+                });
+
+                child_process.execSync(`tar -czf ${package}-${os}-${arch}.tar.gz ${package}`, {
+                  cwd,
+                  stdio: 'inherit',
+                });
+
+                const releaseRef = await github.rest.repos.getReleaseByTag({
+                  ...context.repo,
+                  tag: release[`${packagePath}--tag_name`],
+                });
+
+                await github.rest.repos.uploadReleaseAsset({
+                  ...context.repo,
+                  release_id: releaseRef.data.id,
+                  name: `${package}-${os}-${arch}.tar.gz`,
+                  data: fs.readFileSync(
+                    path.join(cwd, `${package}-${os}-${arch}.tar.gz`)
+                  ),
+                });
+              }
+            }
+        env:
+          RELEASE_OUTPUT: ${{ toJSON(steps.release.outputs) }}
+          PACKAGE: ${{ matrix.package }}

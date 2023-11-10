@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: AutoUpdateImageTransformer
+metadata:
+  name: auto-update-image
+  annotations:
+    config.kubernetes.io/function: |
+      exec:
+        path: image-updater
+spec:
+  srcImgSelector:
+    pattern: ^nginx$
+  remoteImgSelector:
+    pattern: ^1\.(?P<minor>\d+)\.\d+$
+    extract: minor
+    sort: numerically
+    order: desc

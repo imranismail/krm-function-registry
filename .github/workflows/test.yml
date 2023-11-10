@@ -1,0 +1,22 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        package:
+          - image-updater
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: asdf-vm/actions/install@v2
+      - name: test
+        working-directory: krm-functions/${{ matrix.package }}
+        run: |
+          go test
