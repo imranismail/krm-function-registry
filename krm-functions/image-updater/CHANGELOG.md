@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.0 (2023-11-10)
+
+
+### Features
+
+* krm-function-registry ([fe31c2f](https://github.com/imranismail/krm-function-registry/commit/fe31c2f95cf610e64e20b2852345c4f81aa8aa2e))
+
 ## 1.0.0 (2023-11-09)
 
 
