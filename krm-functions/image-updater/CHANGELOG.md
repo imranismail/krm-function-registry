@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/imranismail/krm-function-registry/compare/image-updater-v1.0.0...image-updater-v1.1.0) (2023-11-10)
+
+
+### Features
+
+* rename selectors ([29ceff0](https://github.com/imranismail/krm-function-registry/commit/29ceff06a96cbb0fb4b2f6a0fa20253682c31c33))
+
 ## 1.0.0 (2023-11-10)
 
 
