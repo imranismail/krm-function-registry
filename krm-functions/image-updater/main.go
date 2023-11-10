@@ -30,19 +30,19 @@ type AutoUpdateImage struct {
 }
 
 type AutoUpdateImageSpec struct {
-	SrcImgSelector    *SrcImgSelector      `json:"srcImgSelector,omitempty" yaml:"srcImgSelector,omitempty"`
-	RemoteImgSelector *RemoteImageSelector `json:"remoteImgSelector,omitempty" yaml:"remoteImgSelector,omitempty"`
+	TargetImgSelector *TargetImgSelector `json:"targetImgSelector,omitempty" yaml:"targetImgSelector,omitempty"`
+	RemoteTagSelector *RemoteTagSelector `json:"remoteTagSelector,omitempty" yaml:"remoteTagSelector,omitempty"`
 }
 
 type PatternSelector struct {
 	Pattern *regexp.Regexp `json:"pattern,omitempty" yaml:"pattern,omitempty"`
 }
 
-type SrcImgSelector struct {
+type TargetImgSelector struct {
 	PatternSelector `json:",inline" yaml:",inline"`
 }
 
-type RemoteImageSelector struct {
+type RemoteTagSelector struct {
 	PatternSelector `json:",inline" yaml:",inline"`
 	Extract         string `json:"extract,omitempty" yaml:"extract,omitempty"`
 	Sort            string `json:"sort,omitempty" yaml:"sort,omitempty"`
@@ -52,8 +52,8 @@ type RemoteImageSelector struct {
 func NewAutoUpdateImage() AutoUpdateImage {
 	return AutoUpdateImage{
 		Spec: &AutoUpdateImageSpec{
-			SrcImgSelector: &SrcImgSelector{},
-			RemoteImgSelector: &RemoteImageSelector{
+			TargetImgSelector: &TargetImgSelector{},
+			RemoteTagSelector: &RemoteTagSelector{
 				Sort:  "alphabetically",
 				Order: "asc",
 			},
@@ -107,7 +107,7 @@ func filter(api *AutoUpdateImage) kio.FilterFunc {
 					return err
 				}
 
-				if api.Spec.SrcImgSelector.Pattern != nil && !api.Spec.SrcImgSelector.Pattern.MatchString(ref.String()) {
+				if api.Spec.TargetImgSelector.Pattern != nil && !api.Spec.TargetImgSelector.Pattern.MatchString(ref.String()) {
 					return nil
 				}
 
@@ -144,10 +144,10 @@ func filter(api *AutoUpdateImage) kio.FilterFunc {
 
 				filtered := []string{}
 
-				cmp := api.Spec.RemoteImgSelector.Pattern.SubexpIndex(api.Spec.RemoteImgSelector.Extract)
+				cmp := api.Spec.RemoteTagSelector.Pattern.SubexpIndex(api.Spec.RemoteTagSelector.Extract)
 
 				for _, image := range images {
-					if api.Spec.RemoteImgSelector.Pattern.MatchString(image) {
+					if api.Spec.RemoteTagSelector.Pattern.MatchString(image) {
 						filtered = append(filtered, image)
 					}
 				}
@@ -162,22 +162,22 @@ func filter(api *AutoUpdateImage) kio.FilterFunc {
 						left = filtered[i]
 						right = filtered[j]
 					} else {
-						left = api.Spec.RemoteImgSelector.Pattern.FindStringSubmatch(filtered[i])[cmp]
-						right = api.Spec.RemoteImgSelector.Pattern.FindStringSubmatch(filtered[j])[cmp]
+						left = api.Spec.RemoteTagSelector.Pattern.FindStringSubmatch(filtered[i])[cmp]
+						right = api.Spec.RemoteTagSelector.Pattern.FindStringSubmatch(filtered[j])[cmp]
 					}
 
-					switch api.Spec.RemoteImgSelector.Sort {
+					switch api.Spec.RemoteTagSelector.Sort {
 					case "numerically":
 						left := MustAtoi(left)
 						right := MustAtoi(right)
 
-						if api.Spec.RemoteImgSelector.Order == "asc" {
+						if api.Spec.RemoteTagSelector.Order == "asc" {
 							return left < right
 						} else {
 							return left > right
 						}
 					default:
-						if api.Spec.RemoteImgSelector.Order == "asc" {
+						if api.Spec.RemoteTagSelector.Order == "asc" {
 							return left < right
 						} else {
 							return left > right

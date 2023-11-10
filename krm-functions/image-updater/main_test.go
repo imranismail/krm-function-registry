@@ -44,9 +44,9 @@ kind: AutoUpdateImage
 metadata:
   name: test
 spec:
-  srcImgSelector:
+  targetImgSelector:
     pattern: ^%s/.+$
-  remoteImgSelector:
+  remoteTagSelector:
     pattern: ^\d+\.(?P<minor>\d+)\.\d+$
     extract: minor
     sort: numerically

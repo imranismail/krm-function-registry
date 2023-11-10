@@ -12,9 +12,9 @@ metadata:
       exec:
         path: image-updater
 spec:
-  srcImgSelector:
+  targetImgSelector:
     pattern: ^quay.io/.+$
-  remoteImgSelector:
+  remoteTagSelector:
     pattern: ^master-(?P<commit>.+)-(?P<timestamp>.+)$
     extract: timestamp
     sort: numerically

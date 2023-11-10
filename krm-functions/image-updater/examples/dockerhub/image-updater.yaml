@@ -7,9 +7,9 @@ metadata:
       exec:
         path: image-updater
 spec:
-  srcImgSelector:
+  targetImgSelector:
     pattern: ^nginx$
-  remoteImgSelector:
+  remoteTagSelector:
     pattern: ^1\.(?P<minor>\d+)\.\d+$
     extract: minor
     sort: numerically
