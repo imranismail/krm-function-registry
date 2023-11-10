@@ -40,7 +40,7 @@ jobs:
           release-type: go
       - uses: actions/checkout@v4
         if: ${{ steps.release.outputs.releases_created }}
-      - uses: asdf-vm/actions/install@v2
+      - uses: asdf-vm/actions/install@v3
         if: ${{ steps.release.outputs.releases_created }}
       - name: build
         if: ${{ steps.release.outputs.releases_created }}
