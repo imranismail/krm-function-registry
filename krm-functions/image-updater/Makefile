@@ -2,19 +2,23 @@ OS ?= $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH ?= $(shell uname -m | sed 's/x86_64/amd64/')
 PACKAGE_NAME ?= image-updater
 BUILD_DIR ?= dist
+BUILD_TARGET = $(BUILD_DIR)/$(PACKAGE_NAME)-$(OS)-$(ARCH)
+BUILD_DEPS = $(wildcard **/*.go) go.mod go.sum
+PACKAGE_TARGET = $(BUILD_DIR)/$(PACKAGE_NAME)-$(OS)-$(ARCH).tar.gz
+PACKAGE_DEPS = $(BUILD_TARGET)
 ARGS ?= ""
 
 all: test build
 
-build: $(BUILD_DIR)/$(PACKAGE_NAME)
+build: $(BUILD_TARGET)
 
-package:$(BUILD_DIR)/$(PACKAGE_NAME)-$(OS)-$(ARCH).tar.gz
+package: $(PACKAGE_TARGET)
 
-$(BUILD_DIR)/$(PACKAGE_NAME)-$(OS)-$(ARCH).tar.gz: $(BUILD_DIR)/$(PACKAGE_NAME)
-	@tar -czf $(BUILD_DIR)/$(PACKAGE_NAME)-$(OS)-$(ARCH).tar.gz -C $(BUILD_DIR) $(PACKAGE_NAME)
+$(PACKAGE_TARGET): $(PACKAGE_DEPS)
+	@tar -czf $(PACKAGE_TARGET) -C $(BUILD_DIR) $(PACKAGE_NAME)-$(OS)-$(ARCH) --transform 's/$(PACKAGE_NAME)-$(OS)-$(ARCH)/$(PACKAGE_NAME)/'
 
-$(BUILD_DIR)/$(PACKAGE_NAME): $(wildcard **/*.go) go.mod go.sum
-	@go build -o $(BUILD_DIR)/$(PACKAGE_NAME) -v
+$(BUILD_TARGET): $(BUILD_DEPS)
+	@go build -o $(BUILD_TARGET) -v
 
 test:
 	@go test -v ./...
@@ -23,11 +27,11 @@ clean:
 	@rm -rf $(BUILD_DIR)
 	@go clean
 
-run: build
-	@$(BUILD_DIR)/$(PACKAGE_NAME) $(ARGS)
+run: $(BUILD_TARGET)
+	@$(BUILD_TARGET) $(ARGS)
 
-gen: build
-	@$(BUILD_DIR)/$(PACKAGE_NAME) gen .
+gen: $(BUILD_TARGET)
+	@$(BUILD_TARGET) gen .
 
 check:
 	@go fmt ./...
