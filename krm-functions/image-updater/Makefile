@@ -39,4 +39,4 @@ check:
 fmt:
 	@go fmt ./...
 
-.PHONY: all test clean run
+.PHONY: all build package test clean run gen check fmt
