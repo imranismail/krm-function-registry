@@ -18,5 +18,4 @@ jobs:
       - uses: asdf-vm/actions/install@v3
       - name: test
         working-directory: krm-functions/${{ matrix.package }}
-        run: |
-          go test
+        run: make test

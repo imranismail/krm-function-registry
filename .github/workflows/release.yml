@@ -54,8 +54,9 @@ jobs:
             const cwd = path.join(process.cwd(), packagePath)
             const child_process = require('child_process');
             const fs = require('fs');
+            const buildDir = path.join(cwd, 'dist');
 
-            child_process.execSync('go test', {
+            child_process.execSync('make test', {
               cwd,
               stdio: 'inherit',
             });
@@ -65,12 +66,7 @@ jobs:
 
             for (const os of oses) {
               for (const arch of archs) {
-                child_process.execSync(`GOOS=${os} GOARCH=${arch} go build -o ${package}`, {
-                  cwd,
-                  stdio: 'inherit',
-                });
-
-                child_process.execSync(`tar -czf ${package}-${os}-${arch}.tar.gz ${package}`, {
+                child_process.execSync(`make package PACKAGE="${package}" OS="${os}" ARCH="${arch}" BUILD_DIR="${buildDir}"`, {
                   cwd,
                   stdio: 'inherit',
                 });
@@ -85,7 +81,7 @@ jobs:
                   release_id: releaseRef.data.id,
                   name: `${package}-${os}-${arch}.tar.gz`,
                   data: fs.readFileSync(
-                    path.join(cwd, `${package}-${os}-${arch}.tar.gz`)
+                    path.join(buildDir, `${package}-${os}-${arch}.tar.gz`)
                   ),
                 });
               }
